@@ -111,7 +111,7 @@ export default function AdvancedFilters({
         onChange={(e) => set("approvalStatus", e.target.value)}
         className={selectClass}
       >
-        <option value="">All Approval Statuses</option>
+        <option value="">All</option>
         {Object.entries(APPROVAL_STATUS_LABELS).map(([value, label]) => (
           <option key={value} value={value}>
             {label}
