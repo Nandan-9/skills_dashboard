@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import type { Student } from "@/types/student";
-import { EMPTY_FILTERS, GENDER_LABELS, YEAR_LABELS, type Filters } from "./types";
+import { APPROVAL_STATUS_LABELS, EMPTY_FILTERS, GENDER_LABELS, YEAR_LABELS, type Filters } from "./types";
 
 const selectClass =
   "px-2 py-1.5 rounded border border-gray-300 text-sm bg-white text-gray-900";
@@ -104,6 +104,19 @@ export default function AdvancedFilters({
         <option value="">Agrees to Promote: Any</option>
         <option value="yes">Agrees to Promote: Yes</option>
         <option value="no">Agrees to Promote: No</option>
+      </select>
+
+      <select
+        value={filters.approvalStatus}
+        onChange={(e) => set("approvalStatus", e.target.value)}
+        className={selectClass}
+      >
+        <option value="">All Approval Statuses</option>
+        {Object.entries(APPROVAL_STATUS_LABELS).map(([value, label]) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
       </select>
 
       {hasActiveFilters && (

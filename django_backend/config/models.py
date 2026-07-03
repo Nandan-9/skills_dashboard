@@ -25,6 +25,11 @@ class ICPCAmbassadorApplication(models.Model):
         FOURTH = "4", "4th Year"
         FINAL = "5", "5th Year / Final"
 
+    class ApprovalStatus(models.TextChoices):
+        APPROVE = "approve", "Approve"
+        ON_HOLD = "on_hold", "On Hold"
+        REJECTED = "rejected", "Rejected"
+
     # --- Meta / tracking ---
     reference_id = models.CharField(max_length=50, unique=True, db_index=True)
     submitted_at = models.DateTimeField()  # from "Timestamp"
@@ -79,6 +84,11 @@ class ICPCAmbassadorApplication(models.Model):
     # --- Filter result ---
     # Set by apply_email_filter(): True for the latest state-verified submission per email.
     is_included = models.BooleanField(default=False)
+
+    # --- Approval ---
+    approval_status = models.CharField(
+        max_length=10, choices=ApprovalStatus.choices, default=ApprovalStatus.ON_HOLD
+    )
 
     class Meta:
         ordering = ["-submitted_at"]

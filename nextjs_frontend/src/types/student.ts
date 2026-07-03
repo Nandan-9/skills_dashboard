@@ -41,5 +41,9 @@ export interface Student {
   linkedin_url: string | null;
 
   is_included: boolean;
+
+  approval_status: ApprovalStatus;
 }
+
+export type ApprovalStatus = "approve" | "on_hold" | "rejected";
 

@@ -1,4 +1,6 @@
-import type { Student } from "@/types/student";
+import { useState } from "react";
+import type { ApprovalStatus, Student } from "@/types/student";
+import { setApprovalStatus } from "@/lib/api";
 
 const COLUMNS: { key: keyof Student; label: string }[] = [
   { key: "reference_id", label: "Reference ID" },
@@ -42,6 +44,24 @@ const COLUMNS: { key: keyof Student; label: string }[] = [
 
 const URL_KEYS = new Set<keyof Student>(["photo_url", "instagram_url", "linkedin_url"]);
 
+const APPROVAL_OPTIONS: { status: ApprovalStatus; label: string }[] = [
+  { status: "approve", label: "Approve" },
+  { status: "on_hold", label: "On Hold" },
+  { status: "rejected", label: "Reject" },
+];
+
+const ROW_COLOR: Record<ApprovalStatus, string> = {
+  approve: "bg-green-100",
+  on_hold: "bg-yellow-100",
+  rejected: "bg-red-100",
+};
+
+const BUTTON_ACTIVE_COLOR: Record<ApprovalStatus, string> = {
+  approve: "bg-green-600 text-white",
+  on_hold: "bg-yellow-500 text-white",
+  rejected: "bg-red-600 text-white",
+};
+
 function formatCell(student: Student, key: keyof Student) {
   const value = student[key];
 
@@ -80,6 +100,18 @@ export default function StudentsTable({
   students: Student[];
   maxHeight?: string;
 }) {
+  const [overrides, setOverrides] = useState<Record<number, ApprovalStatus>>({});
+
+  const handleApprovalClick = async (student: Student, status: ApprovalStatus) => {
+    const previous = overrides[student.id] ?? student.approval_status;
+    setOverrides((prev) => ({ ...prev, [student.id]: status }));
+    try {
+      await setApprovalStatus(student.id, status);
+    } catch {
+      setOverrides((prev) => ({ ...prev, [student.id]: previous }));
+    }
+  };
+
   return (
     <div
       className={`overflow-auto border border-gray-200 rounded bg-white ${maxHeight ? "" : "h-full"}`}
@@ -93,18 +125,39 @@ export default function StudentsTable({
                 {col.label}
               </th>
             ))}
+            {APPROVAL_OPTIONS.map((opt) => (
+              <th key={opt.status} className="px-3 py-2 font-medium whitespace-nowrap">
+                {opt.label}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {students.map((student) => (
-            <tr key={student.reference_id} className="even:bg-gray-50">
-              {COLUMNS.map((col) => (
-                <td key={col.key} className="px-3 py-2 whitespace-nowrap max-w-xs truncate">
-                  {formatCell(student, col.key)}
-                </td>
-              ))}
-            </tr>
-          ))}
+          {students.map((student) => {
+            const status = overrides[student.id] ?? student.approval_status;
+            return (
+              <tr key={student.reference_id} className={ROW_COLOR[status]}>
+                {COLUMNS.map((col) => (
+                  <td key={col.key} className="px-3 py-2 whitespace-nowrap max-w-xs truncate">
+                    {formatCell(student, col.key)}
+                  </td>
+                ))}
+                {APPROVAL_OPTIONS.map((opt) => (
+                  <td key={opt.status} className="px-3 py-2 whitespace-nowrap text-center">
+                    <button
+                      type="button"
+                      onClick={() => handleApprovalClick(student, opt.status)}
+                      className={`px-2 py-1 rounded text-xs font-medium border border-gray-300 ${
+                        status === opt.status ? BUTTON_ACTIVE_COLOR[opt.status] : "bg-white hover:bg-gray-100"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

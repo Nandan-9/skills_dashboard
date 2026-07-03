@@ -8,6 +8,7 @@ export interface Filters {
   isWomenOnlyInstitution: string;
   hasOrganizedEvent: string;
   agreesToPromote: string;
+  approvalStatus: string;
 }
 
 export const EMPTY_FILTERS: Filters = {
@@ -18,6 +19,13 @@ export const EMPTY_FILTERS: Filters = {
   isWomenOnlyInstitution: "",
   hasOrganizedEvent: "",
   agreesToPromote: "",
+  approvalStatus: "",
+};
+
+export const APPROVAL_STATUS_LABELS: Record<string, string> = {
+  approve: "Approved",
+  on_hold: "On Hold",
+  rejected: "Rejected",
 };
 
 export const YEAR_LABELS: Record<string, string> = {
@@ -55,6 +63,7 @@ export function applyFilters(students: Student[], filters: Filters): Student[] {
     if (!boolMatches(s.is_women_only_institution, filters.isWomenOnlyInstitution)) return false;
     if (!boolMatches(s.has_organized_event, filters.hasOrganizedEvent)) return false;
     if (!boolMatches(s.agrees_to_promote, filters.agreesToPromote)) return false;
+    if (filters.approvalStatus && s.approval_status !== filters.approvalStatus) return false;
     return true;
   });
 }
