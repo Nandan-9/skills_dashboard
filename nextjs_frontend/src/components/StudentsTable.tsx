@@ -73,9 +73,18 @@ function formatCell(student: Student, key: keyof Student) {
   return String(value);
 }
 
-export default function StudentsTable({ students }: { students: Student[] }) {
+export default function StudentsTable({
+  students,
+  maxHeight,
+}: {
+  students: Student[];
+  maxHeight?: string;
+}) {
   return (
-    <div className="overflow-auto border border-gray-200 rounded h-full bg-white">
+    <div
+      className={`overflow-auto border border-gray-200 rounded bg-white ${maxHeight ? "" : "h-full"}`}
+      style={maxHeight ? { maxHeight } : undefined}
+    >
       <table className="w-full text-sm text-left text-gray-900">
         <thead className="sticky top-0 bg-gray-100">
           <tr>
