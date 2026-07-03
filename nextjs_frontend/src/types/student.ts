@@ -39,15 +39,7 @@ export interface Student {
 
   instagram_url: string | null;
   linkedin_url: string | null;
+
+  is_included: boolean;
 }
 
-export interface SyncSummary {
-  created: number;
-  updated: number;
-  errors: unknown[];
-}
-
-export interface CleanupSyncSummary {
-  updated: number;
-  errors: unknown[];
-}

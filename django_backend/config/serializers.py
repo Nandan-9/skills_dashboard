@@ -7,3 +7,4 @@ class ICPCAmbassadorApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ICPCAmbassadorApplication
         fields = "__all__"
+

@@ -1,9 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { syncCleanupData } from "@/lib/api";
+import { syncAndFilter } from "@/lib/api";
+import type { Student } from "@/types/student";
 
-export default function FetchCleanedDataButton({ onSuccess }: { onSuccess: () => void }) {
+export default function SyncButton({
+  onSuccess,
+}: {
+  onSuccess: (students: Student[]) => void;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -11,8 +16,7 @@ export default function FetchCleanedDataButton({ onSuccess }: { onSuccess: () =>
     setLoading(true);
     setError(null);
     try {
-      await syncCleanupData();
-      onSuccess();
+      onSuccess(await syncAndFilter());
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -25,9 +29,9 @@ export default function FetchCleanedDataButton({ onSuccess }: { onSuccess: () =>
       <button
         onClick={handleClick}
         disabled={loading}
-        className="px-4 py-2 rounded bg-emerald-600 text-white text-sm font-medium disabled:opacity-50"
+        className="px-4 py-2 rounded bg-blue-600 text-white text-sm font-medium disabled:opacity-50"
       >
-        {loading ? "Fetching..." : "Fetch Cleaned Data"}
+        {loading ? "Syncing..." : "Sync Data"}
       </button>
       {error && <span className="text-red-600 text-sm">{error}</span>}
     </div>

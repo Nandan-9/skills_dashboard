@@ -68,8 +68,13 @@ class ICPCAmbassadorApplication(models.Model):
     instagram_url = models.URLField(blank=True, null=True)
     linkedin_url = models.URLField(blank=True, null=True)
 
+    # --- Filter result ---
+    # Set by apply_email_filter(): True for the latest state-verified submission per email.
+    is_included = models.BooleanField(default=False)
+
     class Meta:
         ordering = ["-submitted_at"]
 
     def __str__(self):
         return f"{self.full_name} — {self.college_name}"
+

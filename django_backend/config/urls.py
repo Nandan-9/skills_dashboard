@@ -1,9 +1,7 @@
 from django.urls import path
 
-from .views import ApplicationListView, SyncCleanupSheetView, SyncSheetView
+from .views import SyncView
 
 urlpatterns = [
-    path("sync-sheet/", SyncSheetView.as_view()),
-    path("sync-cleanup-sheet/", SyncCleanupSheetView.as_view()),
-    path("applications/", ApplicationListView.as_view()),
+    path("sync/", SyncView.as_view()),
 ]

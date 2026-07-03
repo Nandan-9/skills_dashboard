@@ -4,11 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchStudents } from "@/lib/api";
 import type { Student } from "@/types/student";
 import StudentsTable from "@/components/StudentsTable";
-import UpdateDataButton from "@/components/UpdateDataButton";
-import FetchCleanedDataButton from "@/components/FetchCleanedDataButton";
-import StudentFilters, { applyFilters, EMPTY_FILTERS, type Filters } from "@/components/StudentFilters";
+import SyncButton from "@/components/SyncButton";
+import Sidebar, { type DashboardView } from "@/components/Sidebar";
+import BasicFilter from "@/components/filters/BasicFilter";
+import AdvancedFilters from "@/components/filters/AdvancedFilters";
+import { applyFilters, EMPTY_FILTERS, type Filters } from "@/components/filters/types";
 
 export default function DashboardPage() {
+  const [view, setView] = useState<DashboardView>("all");
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,27 +36,34 @@ export default function DashboardPage() {
   }, [loadStudents]);
 
   return (
-    <main className="h-screen w-screen p-6 flex flex-col bg-white text-gray-900">
-      <div className="flex items-center justify-between mb-4 shrink-0">
-        <h1 className="text-xl font-semibold">Student Applications</h1>
-        <div className="flex items-center gap-3">
-          <UpdateDataButton onSuccess={loadStudents} />
-          <FetchCleanedDataButton onSuccess={loadStudents} />
-        </div>
-      </div>
-      {loading && <p>Loading...</p>}
-      {error && <p className="text-red-600">{error}</p>}
-      {!loading && !error && (
-        <>
-          <StudentFilters students={students} filters={filters} onChange={setFilters} />
-          <p className="text-sm text-gray-500 mb-2 shrink-0">
-            Showing {filteredStudents.length} of {students.length}
-          </p>
-          <div className="flex-1 min-h-0">
-            <StudentsTable students={filteredStudents} />
+    <div className="h-screen w-screen flex bg-white text-gray-900">
+      <Sidebar view={view} onChange={setView} />
+      <main className="flex-1 min-w-0 p-6 flex flex-col">
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <h1 className="text-xl font-semibold">
+            {view === "all" ? "All Data" : "Advanced Filters"}
+          </h1>
+          <div className="flex items-center gap-3">
+            {view === "all" && <BasicFilter filters={filters} onChange={setFilters} />}
+            <SyncButton onSuccess={setStudents} />
           </div>
-        </>
-      )}
-    </main>
+        </div>
+        {loading && <p>Loading...</p>}
+        {error && <p className="text-red-600">{error}</p>}
+        {!loading && !error && (
+          <>
+            {view === "advanced" && (
+              <AdvancedFilters students={students} filters={filters} onChange={setFilters} />
+            )}
+            <p className="text-sm text-gray-500 mb-2 shrink-0">
+              Showing {filteredStudents.length} of {students.length}
+            </p>
+            <div className="flex-1 min-h-0">
+              <StudentsTable students={filteredStudents} />
+            </div>
+          </>
+        )}
+      </main>
+    </div>
   );
 }

@@ -3,12 +3,8 @@ from datetime import datetime
 import gspread
 from django.conf import settings
 from django.utils import timezone
-from rest_framework.generics import ListAPIView
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from ..models import ICPCAmbassadorApplication
-from ..serializers import ICPCAmbassadorApplicationSerializer
 
 # Maps Google Sheet column headers (Google Form question text) to model field names.
 # Adjust these to match the real header row of the sheet.
@@ -108,7 +104,9 @@ def parse_row(row):
     return parsed
 
 
-def sync_sheet():
+def sync_applications_sheet():
+    """Step 1: pull raw form responses from the main sheet into ICPCAmbassadorApplication."""
+
     client = gspread.service_account(filename=settings.GOOGLE_SERVICE_ACCOUNT_FILE)
     worksheet = client.open_by_key(settings.GOOGLE_SHEET_ID).worksheet(settings.GOOGLE_SHEET_WORKSHEET)
     rows = worksheet.get_all_records()
@@ -131,7 +129,9 @@ def sync_sheet():
     return {"created": created, "updated": updated, "errors": errors}
 
 
-def sync_cleanup_sheet():
+def sync_verification_sheet():
+    """Step 2: pull the cleaned-up institution name / state / verification status from the cleanup sheet."""
+
     client = gspread.service_account(filename=settings.GOOGLE_SERVICE_ACCOUNT_FILE)
     worksheet = client.open_by_key(settings.GOOGLE_SHEET_ID).worksheet(settings.GOOGLE_SHEET_WORKSHEET2)
     rows = worksheet.get_all_records()
@@ -164,32 +164,25 @@ def sync_cleanup_sheet():
     return {"updated": updated, "errors": errors}
 
 
-class ApplicationListView(ListAPIView):
-    queryset = ICPCAmbassadorApplication.objects.all()
-    serializer_class = ICPCAmbassadorApplicationSerializer
+def apply_email_filter():
+    """Step 3: dedupe state-verified applications by email, keeping the latest submission per email."""
+
+    ICPCAmbassadorApplication.objects.update(is_included=False)
+
+    verified = ICPCAmbassadorApplication.objects.filter(is_state_verified=True).order_by("submitted_at")
+    winner_id_by_email = {application.email: application.id for application in verified}
+
+    ICPCAmbassadorApplication.objects.filter(id__in=winner_id_by_email.values()).update(is_included=True)
 
 
-class SyncSheetView(APIView):
-    def post(self, request):
-        if request.headers.get("X-Sync-Key") != settings.SHEET_SYNC_API_KEY:
-            return Response({"detail": "Forbidden"}, status=403)
-
-        try:
-            summary = sync_sheet()
-        except Exception as exc:
-            return Response({"detail": str(exc)}, status=500)
-
-        return Response(summary, status=200)
+def get_filtered_applications():
+    return ICPCAmbassadorApplication.objects.filter(is_included=True)
 
 
-class SyncCleanupSheetView(APIView):
-    def post(self, request):
-        if request.headers.get("X-Sync-Key") != settings.SHEET_SYNC_API_KEY:
-            return Response({"detail": "Forbidden"}, status=403)
+def run_full_sync():
+    """The whole pipeline: fetch sheet 1 -> save -> update fields from cleanup sheet -> filter by email -> save."""
 
-        try:
-            summary = sync_cleanup_sheet()
-        except Exception as exc:
-            return Response({"detail": str(exc)}, status=500)
-
-        return Response(summary, status=200)
+    sheet_summary = sync_applications_sheet()
+    verification_summary = sync_verification_sheet()
+    apply_email_filter()
+    return {"sheet_sync": sheet_summary, "verification_sync": verification_summary}
