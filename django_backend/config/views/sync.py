@@ -114,7 +114,7 @@ def sync_sheet():
     rows = worksheet.get_all_records()
     created = updated = 0
     errors = []
-    for index, row in enumerate(rows, start=2):  # row 1 is the header
+    for index, row in enumerate(rows, start=1):  # row 1 is the header
         try:
             parsed = parse_row(row)
             reference_id = f"{settings.GOOGLE_SHEET_WORKSHEET}-{index}"
@@ -131,6 +131,39 @@ def sync_sheet():
     return {"created": created, "updated": updated, "errors": errors}
 
 
+def sync_cleanup_sheet():
+    client = gspread.service_account(filename=settings.GOOGLE_SERVICE_ACCOUNT_FILE)
+    worksheet = client.open_by_key(settings.GOOGLE_SHEET_ID).worksheet(settings.GOOGLE_SHEET_WORKSHEET2)
+    rows = worksheet.get_all_records()
+    updated = 0
+    errors = []
+    for index, row in enumerate(rows, start=2):  # row 1 is the header
+        try:
+            raw_ref = str(row.get("Refernce_ID", "")).strip()
+            if not raw_ref.isdigit():
+                raise ValueError(f"invalid Refernce_ID '{raw_ref}'")
+
+            # Refernce_ID is the form response's sequential number (1, 2, 3, ...),
+            # while the main sync stores reference_id as "{worksheet}-{sheet row}",
+            # and response N landed on sheet row N + 1 (row 1 is the header).
+            reference_id = f"{settings.GOOGLE_SHEET_WORKSHEET}-{int(raw_ref)}"
+
+            updated_count = ICPCAmbassadorApplication.objects.filter(
+                reference_id=reference_id
+            ).update(
+                college_name=str(row.get("Cleaned Institution Name", "")).strip(),
+                state=str(row.get("Final State", "")).strip(),
+                is_state_verified=True,
+            )
+            if updated_count == 0:
+                raise ValueError(f"reference_id '{reference_id}' not found")
+            updated += 1
+        except Exception as exc:
+            errors.append({"row": index, "reason": str(exc)})
+
+    return {"updated": updated, "errors": errors}
+
+
 class ApplicationListView(ListAPIView):
     queryset = ICPCAmbassadorApplication.objects.all()
     serializer_class = ICPCAmbassadorApplicationSerializer
@@ -142,8 +175,20 @@ class SyncSheetView(APIView):
             return Response({"detail": "Forbidden"}, status=403)
 
         try:
-            print("dsdssds")
             summary = sync_sheet()
+        except Exception as exc:
+            return Response({"detail": str(exc)}, status=500)
+
+        return Response(summary, status=200)
+
+
+class SyncCleanupSheetView(APIView):
+    def post(self, request):
+        if request.headers.get("X-Sync-Key") != settings.SHEET_SYNC_API_KEY:
+            return Response({"detail": "Forbidden"}, status=403)
+
+        try:
+            summary = sync_cleanup_sheet()
         except Exception as exc:
             return Response({"detail": str(exc)}, status=500)
 

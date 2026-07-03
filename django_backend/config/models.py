@@ -36,6 +36,7 @@ class ICPCAmbassadorApplication(models.Model):
     official_email = models.EmailField()
     state = models.CharField(max_length=100)
     college_name = models.CharField(max_length=255)
+    is_state_verified = models.BooleanField(default=False)
     degree_program = models.CharField(max_length=100)
     year_of_study = models.CharField(max_length=1, choices=YearOfStudy.choices)
     is_women_only_institution = models.BooleanField(default=False)
