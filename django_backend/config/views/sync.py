@@ -7,8 +7,8 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import ICPCAmbassadorApplication
-from .serializers import ICPCAmbassadorApplicationSerializer
+from ..models import ICPCAmbassadorApplication
+from ..serializers import ICPCAmbassadorApplicationSerializer
 
 # Maps Google Sheet column headers (Google Form question text) to model field names.
 # Adjust these to match the real header row of the sheet.
