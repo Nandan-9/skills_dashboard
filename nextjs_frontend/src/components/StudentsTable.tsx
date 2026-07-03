@@ -62,7 +62,7 @@ function formatCell(student: Student, key: keyof Student) {
         href={String(value)}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-600 hover:underline dark:text-blue-400"
+        className="text-blue-600 hover:underline"
       >
         Link
       </a>
@@ -74,9 +74,9 @@ function formatCell(student: Student, key: keyof Student) {
 
 export default function StudentsTable({ students }: { students: Student[] }) {
   return (
-    <div className="overflow-auto border rounded h-full">
-      <table className="w-full text-sm text-left">
-        <thead className="sticky top-0 bg-gray-100 dark:bg-gray-800">
+    <div className="overflow-auto border border-gray-200 rounded h-full bg-white">
+      <table className="w-full text-sm text-left text-gray-900">
+        <thead className="sticky top-0 bg-gray-100">
           <tr>
             {COLUMNS.map((col) => (
               <th key={col.key} className="px-3 py-2 font-medium whitespace-nowrap">
@@ -87,7 +87,7 @@ export default function StudentsTable({ students }: { students: Student[] }) {
         </thead>
         <tbody>
           {students.map((student) => (
-            <tr key={student.reference_id} className="even:bg-gray-50 dark:even:bg-gray-900">
+            <tr key={student.reference_id} className="even:bg-gray-50">
               {COLUMNS.map((col) => (
                 <td key={col.key} className="px-3 py-2 whitespace-nowrap max-w-xs truncate">
                   {formatCell(student, col.key)}
