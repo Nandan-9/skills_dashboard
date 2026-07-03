@@ -3,6 +3,14 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 
 
+class College(models.Model):
+    name = models.CharField(max_length=255)
+    place = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.name} — {self.place}"
+
+
 class ICPCAmbassadorApplication(models.Model):
 
     class Gender(models.TextChoices):
