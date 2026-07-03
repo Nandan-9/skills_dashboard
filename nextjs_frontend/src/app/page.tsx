@@ -28,14 +28,18 @@ export default function DashboardPage() {
   }, [loadStudents]);
 
   return (
-    <main className="p-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-4">
+    <main className="h-screen w-screen p-6 flex flex-col">
+      <div className="flex items-center justify-between mb-4 shrink-0">
         <h1 className="text-xl font-semibold">Student Applications</h1>
         <UpdateDataButton onSuccess={loadStudents} />
       </div>
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-600">{error}</p>}
-      {!loading && !error && <StudentsTable students={students} />}
+      {!loading && !error && (
+        <div className="flex-1 min-h-0">
+          <StudentsTable students={students} />
+        </div>
+      )}
     </main>
   );
 }
