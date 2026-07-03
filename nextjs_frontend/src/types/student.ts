@@ -13,6 +13,7 @@ export interface Student {
   official_email: string;
   state: string;
   college_name: string;
+  is_state_verified: boolean;
   degree_program: string;
   year_of_study: string;
   is_women_only_institution: boolean;
@@ -42,6 +43,11 @@ export interface Student {
 
 export interface SyncSummary {
   created: number;
+  updated: number;
+  errors: unknown[];
+}
+
+export interface CleanupSyncSummary {
   updated: number;
   errors: unknown[];
 }

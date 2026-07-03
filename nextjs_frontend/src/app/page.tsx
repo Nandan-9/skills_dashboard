@@ -5,6 +5,7 @@ import { fetchStudents } from "@/lib/api";
 import type { Student } from "@/types/student";
 import StudentsTable from "@/components/StudentsTable";
 import UpdateDataButton from "@/components/UpdateDataButton";
+import FetchCleanedDataButton from "@/components/FetchCleanedDataButton";
 import StudentFilters, { applyFilters, EMPTY_FILTERS, type Filters } from "@/components/StudentFilters";
 
 export default function DashboardPage() {
@@ -35,7 +36,10 @@ export default function DashboardPage() {
     <main className="h-screen w-screen p-6 flex flex-col bg-white text-gray-900">
       <div className="flex items-center justify-between mb-4 shrink-0">
         <h1 className="text-xl font-semibold">Student Applications</h1>
-        <UpdateDataButton onSuccess={loadStudents} />
+        <div className="flex items-center gap-3">
+          <UpdateDataButton onSuccess={loadStudents} />
+          <FetchCleanedDataButton onSuccess={loadStudents} />
+        </div>
       </div>
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-600">{error}</p>}

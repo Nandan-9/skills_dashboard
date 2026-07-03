@@ -12,6 +12,7 @@ const COLUMNS: { key: keyof Student; label: string }[] = [
   { key: "official_email", label: "Official Email" },
   { key: "state", label: "State" },
   { key: "college_name", label: "College" },
+  { key: "is_state_verified", label: "State Verified" },
   { key: "degree_program", label: "Degree Program" },
   { key: "year_of_study", label: "Year" },
   { key: "is_women_only_institution", label: "Women-only Institution" },
