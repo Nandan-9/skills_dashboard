@@ -1,15 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchStudents } from "@/lib/api";
 import type { Student } from "@/types/student";
 import StudentsTable from "@/components/StudentsTable";
 import UpdateDataButton from "@/components/UpdateDataButton";
+import StudentFilters, { applyFilters, EMPTY_FILTERS, type Filters } from "@/components/StudentFilters";
 
 export default function DashboardPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+
+  const filteredStudents = useMemo(() => applyFilters(students, filters), [students, filters]);
 
   const loadStudents = useCallback(async () => {
     setLoading(true);
@@ -36,9 +40,15 @@ export default function DashboardPage() {
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-600">{error}</p>}
       {!loading && !error && (
-        <div className="flex-1 min-h-0">
-          <StudentsTable students={students} />
-        </div>
+        <>
+          <StudentFilters students={students} filters={filters} onChange={setFilters} />
+          <p className="text-sm text-gray-500 mb-2 shrink-0">
+            Showing {filteredStudents.length} of {students.length}
+          </p>
+          <div className="flex-1 min-h-0">
+            <StudentsTable students={filteredStudents} />
+          </div>
+        </>
       )}
     </main>
   );

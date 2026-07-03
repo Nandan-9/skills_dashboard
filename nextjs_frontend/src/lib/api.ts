@@ -11,3 +11,4 @@ export async function syncSheetData(): Promise<SyncSummary> {
   if (!res.ok) throw new Error("Failed to sync data");
   return res.json();
 }
+
