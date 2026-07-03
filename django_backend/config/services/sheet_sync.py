@@ -151,8 +151,8 @@ def sync_verification_sheet():
             updated_count = ICPCAmbassadorApplication.objects.filter(
                 reference_id=reference_id
             ).update(
-                college_name=str(row.get("Cleaned Institution Name", "")).strip(),
-                state=str(row.get("Final State", "")).strip(),
+                college_name=str(row.get("Cleaned Institution Name", "Nill")).strip(),
+                state=str(row.get("Final State", "Nill")).strip(),
                 is_state_verified=True,
             )
             if updated_count == 0:
