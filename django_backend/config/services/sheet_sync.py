@@ -2,6 +2,7 @@ from datetime import datetime
 
 import gspread
 from django.conf import settings
+from django.db.models import Count
 from django.utils import timezone
 
 from ..models import ICPCAmbassadorApplication
@@ -179,10 +180,27 @@ def get_filtered_applications():
     return ICPCAmbassadorApplication.objects.filter(is_included=True)
 
 
+def auto_approve_small_colleges(max_students=3):
+    """Step 4: auto-approve applications from colleges with `max_students` or fewer included applications."""
+
+    small_colleges = (
+        ICPCAmbassadorApplication.objects.filter(is_included=True)
+        .values("college_name")
+        .annotate(student_count=Count("id"))
+        .filter(student_count__lte=max_students)
+        .values_list("college_name", flat=True)
+    )
+
+    return ICPCAmbassadorApplication.objects.filter(
+        is_included=True, college_name__in=list(small_colleges)
+    ).update(approval_status=ICPCAmbassadorApplication.ApprovalStatus.APPROVE)
+
+
 def run_full_sync():
-    """The whole pipeline: fetch sheet 1 -> save -> update fields from cleanup sheet -> filter by email -> save."""
+    """The whole pipeline: fetch sheet 1 -> save -> update fields from cleanup sheet -> filter by email -> auto-approve small colleges."""
 
     sheet_summary = sync_applications_sheet()
     verification_summary = sync_verification_sheet()
     apply_email_filter()
+    auto_approve_small_colleges()
     return {"sheet_sync": sheet_summary, "verification_sync": verification_summary}
