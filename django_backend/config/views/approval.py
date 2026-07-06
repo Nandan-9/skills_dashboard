@@ -7,9 +7,11 @@ from ..serializers import ICPCAmbassadorApplicationSerializer
 
 
 class ApplicationListView(APIView):
+
     """List applications, optionally filtered by approval_status."""
 
     def get(self, request):
+
         applications = ICPCAmbassadorApplication.objects.all()
 
         approval_status = request.query_params.get("approval_status")

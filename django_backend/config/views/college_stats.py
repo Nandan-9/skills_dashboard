@@ -8,6 +8,7 @@ from ..serializers import ICPCAmbassadorApplicationSerializer
 
 
 class CollegeStudentsView(APIView):
+
     """Students grouped by college, with per-college and overall counts.
 
     By default only includes state-verified, deduplicated applications
@@ -16,6 +17,7 @@ class CollegeStudentsView(APIView):
     """
 
     def get(self, request):
+
         applications = ICPCAmbassadorApplication.objects.all()
         if request.query_params.get("include") != "all":
             applications = applications.filter(is_included=True)

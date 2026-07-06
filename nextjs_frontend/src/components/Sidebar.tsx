@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const NAV_ITEMS = [
   { href: "/", label: "All Data" },
   { href: "/colleges", label: "Colleges" },
+  { href: "/approved", label: "Approved Students" },
 ];
 
 export default function Sidebar() {
