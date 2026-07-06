@@ -11,4 +11,5 @@ dependencies = [
     "python-decouple>=3.8",
     "gspread>=6.1.4",
     "google-auth>=2.35.0",
+    "google-api-python-client>=2.198.0",
 ]
