@@ -29,6 +29,7 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0', cast=Csv())
 
+SCOPES = ['https://www.googleapis.com/auth/drive']
 
 # Application definition
 
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'rest_framework',
     'config',
+    'filehandler',
 ]
 
 MIDDLEWARE = [
@@ -94,6 +96,7 @@ GOOGLE_SHEET_ID = config('GOOGLE_SHEET_ID')
 GOOGLE_SHEET_WORKSHEET = config('GOOGLE_SHEET_WORKSHEET')
 GOOGLE_SHEET_WORKSHEET2 = config('GOOGLE_SHEET_WORKSHEET2')
 SHEET_SYNC_API_KEY = config('SHEET_SYNC_API_KEY')
+GOOGLE_DRIVE_PARENT_FOLDER_ID = config('GOOGLE_DRIVE_PARENT_FOLDER_ID')
 
 
 # Password validation
