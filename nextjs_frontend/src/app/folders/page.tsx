@@ -5,12 +5,24 @@ import { fetchFolders } from "@/lib/api";
 import type { StudentFolder } from "@/types/upload";
 import Sidebar from "@/components/Sidebar";
 import { FolderIcon } from "@/components/icons/FolderIcon";
+import { CopyIcon } from "@/components/icons/CopyIcon";
 
 export default function FoldersPage() {
   const [folders, setFolders] = useState<StudentFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopy = async (id: string, link: string) => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId((current) => (current === id ? null : current)), 1500);
+    } catch {
+      // clipboard access denied; ignore
+    }
+  };
 
   useEffect(() => {
     fetchFolders()
@@ -53,18 +65,30 @@ export default function FoldersPage() {
           <div className="flex-1 min-h-0 overflow-auto">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {filteredFolders.map((folder) => (
-                <a
+                <div
                   key={folder.drive_folder_id}
-                  href={folder.folder_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="aspect-square flex flex-col items-center justify-center gap-2 p-4 rounded hover:bg-gray-50"
+                  className="aspect-square flex flex-col rounded border border-gray-200 hover:bg-gray-50"
                 >
-                  <FolderIcon className="w-10 h-10 text-blue-500 shrink-0" />
-                  <span className="text-sm font-medium text-center truncate w-full" title={folder.student_id}>
-                    {folder.student_id}
-                  </span>
-                </a>
+                  <a
+                    href={folder.folder_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 p-4"
+                  >
+                    <FolderIcon className="w-10 h-10 text-blue-500 shrink-0" />
+                    <span className="text-sm font-medium text-center truncate w-full" title={folder.student_id}>
+                      {folder.student_id}
+                    </span>
+                  </a>
+                  <button
+                    onClick={() => handleCopy(folder.drive_folder_id, folder.folder_link)}
+                    title="Copy folder link"
+                    className="shrink-0 flex items-center justify-center gap-1.5 py-1.5 border-t border-gray-200 text-xs text-gray-500 hover:text-blue-600"
+                  >
+                    <CopyIcon className="w-3.5 h-3.5" />
+                    {copiedId === folder.drive_folder_id ? "Copied" : "Copy link"}
+                  </button>
+                </div>
               ))}
             </div>
           </div>
