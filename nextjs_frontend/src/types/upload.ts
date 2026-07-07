@@ -22,3 +22,12 @@ export interface StudentFolder {
 export interface StudentFolderListResponse {
   results: StudentFolder[];
 }
+
+export type FolderAccessRole = "reader" | "writer" | "commenter" | "owner";
+
+export interface FolderAccessEntry {
+  id: string;
+  emailAddress: string;
+  role: FolderAccessRole;
+  type: string;
+}

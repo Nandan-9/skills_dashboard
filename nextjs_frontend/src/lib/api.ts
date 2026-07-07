@@ -1,6 +1,6 @@
 import type { ApprovalStatus, Student } from "@/types/student";
 import type { CollegeStudentsResponse } from "@/types/college";
-import type { BulkUploadResponse, StudentFolder } from "@/types/upload";
+import type { BulkUploadResponse, FolderAccessEntry, FolderAccessRole, StudentFolder } from "@/types/upload";
 
 export async function fetchStudents(): Promise<Student[]> {
   const res = await fetch("/api/sync", { cache: "no-store" });
@@ -47,4 +47,28 @@ export async function fetchFolders(): Promise<StudentFolder[]> {
   if (!res.ok) throw new Error("Failed to load folders");
   const data = await res.json();
   return data.results;
+}
+
+export async function fetchFolderAccess(folderId: string): Promise<FolderAccessEntry[]> {
+  const res = await fetch(`/api/filehandler/folder-access?folder_id=${encodeURIComponent(folderId)}`, {
+    cache: "no-store",
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail ?? "Failed to load folder access");
+  return data;
+}
+
+export async function grantFolderAccess(
+  folderId: string,
+  email: string,
+  role: FolderAccessRole
+): Promise<FolderAccessEntry> {
+  const res = await fetch("/api/filehandler/folder-access", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ folder_id: folderId, email, role }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail ?? "Failed to grant folder access");
+  return data;
 }

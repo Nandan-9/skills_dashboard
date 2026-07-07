@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { fetchFolders } from "@/lib/api";
 import type { StudentFolder } from "@/types/upload";
 import Sidebar from "@/components/Sidebar";
+import FolderAccessModal from "@/components/FolderAccessModal";
 import { FolderIcon } from "@/components/icons/FolderIcon";
 import { CopyIcon } from "@/components/icons/CopyIcon";
+import { GearIcon } from "@/components/icons/GearIcon";
 
 export default function FoldersPage() {
   const [folders, setFolders] = useState<StudentFolder[]>([]);
@@ -13,6 +15,7 @@ export default function FoldersPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [managingFolder, setManagingFolder] = useState<StudentFolder | null>(null);
 
   const handleCopy = async (id: string, link: string) => {
     try {
@@ -67,8 +70,15 @@ export default function FoldersPage() {
               {filteredFolders.map((folder) => (
                 <div
                   key={folder.drive_folder_id}
-                  className="aspect-square flex flex-col rounded border border-gray-200 hover:bg-gray-50"
+                  className="relative aspect-square flex flex-col rounded border border-gray-200 hover:bg-gray-50"
                 >
+                  <button
+                    onClick={() => setManagingFolder(folder)}
+                    title="Manage access"
+                    className="absolute top-1.5 right-1.5 p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+                  >
+                    <GearIcon className="w-4 h-4" />
+                  </button>
                   <a
                     href={folder.folder_link}
                     target="_blank"
@@ -94,6 +104,14 @@ export default function FoldersPage() {
           </div>
         )}
       </main>
+
+      {managingFolder && (
+        <FolderAccessModal
+          folderId={managingFolder.drive_folder_id}
+          folderName={managingFolder.student_id}
+          onClose={() => setManagingFolder(null)}
+        />
+      )}
     </div>
   );
 }
