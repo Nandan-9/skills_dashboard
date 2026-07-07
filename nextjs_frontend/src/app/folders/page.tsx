@@ -32,21 +32,22 @@ export default function FoldersPage() {
 
         {!loading && !error && (
           <div className="flex-1 min-h-0 overflow-auto">
-            <ul className="divide-y divide-gray-100">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {folders.map((folder) => (
-                <li key={folder.drive_folder_id}>
-                  <a
-                    href={folder.folder_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 py-3 px-2 hover:bg-gray-50 rounded"
-                  >
-                    <FolderIcon className="w-5 h-5 text-blue-500 shrink-0" />
-                    <span className="text-sm font-medium">{folder.student_id}</span>
-                  </a>
-                </li>
+                <a
+                  key={folder.drive_folder_id}
+                  href={folder.folder_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center gap-2 p-4  rounded hover:bg-gray-50"
+                >
+                  <FolderIcon className="w-10 h-10 text-blue-500 shrink-0" />
+                  <span className="text-sm font-medium text-center truncate w-full" title={folder.student_id}>
+                    {folder.student_id}
+                  </span>
+                </a>
               ))}
-            </ul>
+            </div>
           </div>
         )}
       </main>
