@@ -1,6 +1,6 @@
 import type { ApprovalStatus, Student } from "@/types/student";
 import type { CollegeStudentsResponse } from "@/types/college";
-import type { BulkUploadResponse } from "@/types/upload";
+import type { BulkUploadResponse, StudentFolder } from "@/types/upload";
 
 export async function fetchStudents(): Promise<Student[]> {
   const res = await fetch("/api/sync", { cache: "no-store" });
@@ -40,4 +40,11 @@ export async function uploadBulkFiles(files: File[]): Promise<BulkUploadResponse
   });
   if (!res.ok) throw new Error("Failed to upload files");
   return res.json();
+}
+
+export async function fetchFolders(): Promise<StudentFolder[]> {
+  const res = await fetch("/api/filehandler/folders", { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to load folders");
+  const data = await res.json();
+  return data.results;
 }
