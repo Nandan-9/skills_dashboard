@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { href: "/", label: "All Data" },
   { href: "/colleges", label: "Colleges" },
   { href: "/approved", label: "Approved Students" },
+  { href: "/bulk-upload", label: "Bulk Upload" },
 ];
 
 export default function Sidebar() {
