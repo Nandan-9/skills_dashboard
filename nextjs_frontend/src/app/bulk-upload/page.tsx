@@ -10,6 +10,7 @@ export default function BulkUploadPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<BulkUploadResult[] | null>(null);
+  const [loadedCount, setLoadedCount] = useState(0);
 
   const previews = useMemo(
     () => files.map((file) => ({ file, url: URL.createObjectURL(file) })),
@@ -17,10 +18,16 @@ export default function BulkUploadPage() {
   );
 
   useEffect(() => {
+    setLoadedCount(0);
+  }, [previews]);
+
+  useEffect(() => {
     return () => {
       previews.forEach((p) => URL.revokeObjectURL(p.url));
     };
   }, [previews]);
+
+  const fetchingPreviews = previews.length > 0 && loadedCount < previews.length;
 
   const handleUpload = async () => {
     if (files.length === 0) return;
@@ -83,6 +90,7 @@ export default function BulkUploadPage() {
                     <img
                       src={url}
                       alt={file.name}
+                      onLoad={() => setLoadedCount((c) => c + 1)}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -126,6 +134,15 @@ export default function BulkUploadPage() {
           </div>
         )}
       </main>
+
+      {fetchingPreviews && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg px-6 py-5 flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin shrink-0" />
+            <p className="text-sm font-medium text-gray-700">Shawshank is fetching...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
