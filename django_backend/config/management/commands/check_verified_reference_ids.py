@@ -24,8 +24,16 @@ REFERENCE_NUMBERS = [
 class Command(BaseCommand):
     help = (
         "Check that a given list of reference_id numbers (Main_Sheet-<n>) exist "
-        "in the DB and are actually filtered (is_included) + approved."
+        "in the DB and are actually filtered (is_included) + approved. "
+        "Pass --approve to set approval_status=APPROVE for the ones found in the DB."
     )
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--approve",
+            action="store_true",
+            help="Set approval_status=APPROVE for all found reference IDs.",
+        )
 
     def handle(self, *args, **options):
         reference_ids = [f"Main_Sheet-{n}" for n in REFERENCE_NUMBERS]
@@ -36,6 +44,14 @@ class Command(BaseCommand):
                 reference_id__in=reference_ids
             )
         }
+
+        if options["approve"]:
+            updated = ICPCAmbassadorApplication.objects.filter(
+                reference_id__in=found.keys()
+            ).update(approval_status=ICPCAmbassadorApplication.ApprovalStatus.APPROVE)
+            self.stdout.write(self.style.SUCCESS(f"Approved {updated} application(s)."))
+            for a in found.values():
+                a.approval_status = ICPCAmbassadorApplication.ApprovalStatus.APPROVE
 
         missing = [rid for rid in reference_ids if rid not in found]
         not_included = [

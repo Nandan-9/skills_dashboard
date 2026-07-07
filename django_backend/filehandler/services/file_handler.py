@@ -1,3 +1,5 @@
+import re
+
 from django.conf import settings
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -128,6 +130,21 @@ def get_or_create_folder_record(service, reference_id, full_name=None):
         )
 
     raise LookupError(f"No folder or student found for reference_id '{reference_id}'.")
+
+
+def get_next_sequential_filename(folder_record, content_type, extension):
+    """Return the next 'image{N}{ext}' or 'file{N}{ext}' name for folder_record."""
+    base_name = "image" if content_type and content_type.startswith("image/") else "file"
+    pattern = re.compile(rf"^{base_name}(\d+){re.escape(extension)}$", re.IGNORECASE)
+
+    max_index = 0
+    existing_names = DriveFileEntry.objects.filter(folder=folder_record).values_list("file_name", flat=True)
+    for name in existing_names:
+        match = pattern.match(name)
+        if match:
+            max_index = max(max_index, int(match.group(1)))
+
+    return f"{base_name}{max_index + 1}{extension}"
 
 
 def get_or_create_file_entry(service, folder_record, filename, file_obj, content_type, size_bytes):

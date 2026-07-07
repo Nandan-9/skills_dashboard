@@ -7,7 +7,12 @@ from rest_framework.views import APIView
 
 from config.models import ICPCAmbassadorApplication
 
-from ..services.file_handler import get_drive_service, get_or_create_file_entry, get_or_create_folder_record
+from ..services.file_handler import (
+    get_drive_service,
+    get_next_sequential_filename,
+    get_or_create_file_entry,
+    get_or_create_folder_record,
+)
 
 
 class BulkFileUploadView(APIView):
@@ -59,14 +64,17 @@ class BulkFileUploadView(APIView):
                         {"filename": file.name, "reference_id": reference_id, "error": str(exc)}
                     )
                     continue
+                extension = os.path.splitext(file.name)[1]
+                drive_filename = get_next_sequential_filename(folder_record, file.content_type, extension)
 
                 entry, overwritten = get_or_create_file_entry(
-                    service, folder_record, file.name, file, file.content_type, file.size
+                    service, folder_record, drive_filename, file, file.content_type, file.size
                 )
 
                 results.append(
                     {
                         "filename": file.name,
+                        "drive_filename": drive_filename,
                         "reference_id": reference_id,
                         "folder_id": folder_record.drive_folder_id,
                         "file_id": entry.drive_file_id,
