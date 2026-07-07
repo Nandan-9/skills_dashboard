@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { uploadBulkFiles } from "@/lib/api";
 import type { BulkUploadResult } from "@/types/upload";
 import Sidebar from "@/components/Sidebar";
@@ -10,6 +10,17 @@ export default function BulkUploadPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<BulkUploadResult[] | null>(null);
+
+  const previews = useMemo(
+    () => files.map((file) => ({ file, url: URL.createObjectURL(file) })),
+    [files]
+  );
+
+  useEffect(() => {
+    return () => {
+      previews.forEach((p) => URL.revokeObjectURL(p.url));
+    };
+  }, [previews]);
 
   const handleUpload = async () => {
     if (files.length === 0) return;
@@ -40,19 +51,49 @@ export default function BulkUploadPage() {
           <input
             type="file"
             multiple
+            accept="image/*"
             onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
             className="text-sm"
           />
-          <button
-            onClick={handleUpload}
-            disabled={files.length === 0 || uploading}
-            className="px-4 py-2 rounded bg-blue-600 text-white text-sm font-medium disabled:opacity-50"
-          >
-            {uploading ? "Uploading..." : `Upload ${files.length || ""}`.trim()}
-          </button>
         </div>
 
         {error && <p className="text-red-600 mt-4">{error}</p>}
+
+        {previews.length > 0 && (
+          <div className="mt-4 flex-1 min-h-0 flex flex-col">
+            <div className="flex items-center justify-between mb-3 shrink-0">
+              <h2 className="text-sm font-medium text-gray-700">
+                Selected files ({previews.length})
+              </h2>
+              <button
+                onClick={handleUpload}
+                disabled={uploading}
+                className="px-4 py-2 rounded bg-blue-600 text-white text-sm font-medium disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : `Upload ${previews.length}`}
+              </button>
+            </div>
+            <div className="flex-1 min-h-0 overflow-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {previews.map(({ file, url }) => (
+                <div
+                  key={`${file.name}-${file.lastModified}`}
+                  className="border border-gray-200 rounded overflow-hidden flex flex-col"
+                >
+                  <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={url}
+                      alt={file.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-600 truncate px-2 py-1" title={file.name}>
+                    {file.name}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {results && (
           <div className="flex-1 min-h-0 overflow-auto mt-6">
