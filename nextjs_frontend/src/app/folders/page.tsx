@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchFolders } from "@/lib/api";
-import type { StudentFolder } from "@/types/upload";
+import type { Folder } from "@/types/folder";
 import Sidebar from "@/components/Sidebar";
 import FolderAccessModal from "@/components/FolderAccessModal";
 import { FolderIcon } from "@/components/icons/FolderIcon";
@@ -10,12 +10,12 @@ import { CopyIcon } from "@/components/icons/CopyIcon";
 import { GearIcon } from "@/components/icons/GearIcon";
 
 export default function FoldersPage() {
-  const [folders, setFolders] = useState<StudentFolder[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [managingFolder, setManagingFolder] = useState<StudentFolder | null>(null);
+  const [managingFolder, setManagingFolder] = useState<Folder | null>(null);
 
   const handleCopy = async (id: string, link: string) => {
     try {
@@ -106,11 +106,7 @@ export default function FoldersPage() {
       </main>
 
       {managingFolder && (
-        <FolderAccessModal
-          folderId={managingFolder.drive_folder_id}
-          folderName={managingFolder.student_id}
-          onClose={() => setManagingFolder(null)}
-        />
+        <FolderAccessModal folder={managingFolder} onClose={() => setManagingFolder(null)} />
       )}
     </div>
   );

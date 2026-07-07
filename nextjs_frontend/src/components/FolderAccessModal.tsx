@@ -2,20 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { fetchFolderAccess, grantFolderAccess } from "@/lib/api";
-import type { FolderAccessEntry, FolderAccessRole } from "@/types/upload";
+import { FOLDER_ACCESS_ROLES, type Folder, type FolderAccessEntry, type FolderAccessRole } from "@/types/folder";
 import { CloseIcon } from "@/components/icons/CloseIcon";
 import { PlusIcon } from "@/components/icons/PlusIcon";
 
-const ROLES: FolderAccessRole[] = ["reader", "commenter", "writer", "owner"];
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface FolderAccessModalProps {
-  folderId: string;
-  folderName: string;
+  folder: Folder;
   onClose: () => void;
 }
 
-export default function FolderAccessModal({ folderId, folderName, onClose }: FolderAccessModalProps) {
+export default function FolderAccessModal({ folder, onClose }: FolderAccessModalProps) {
+  const folderId = folder.drive_folder_id;
+  const folderName = folder.student_id;
   const [entries, setEntries] = useState<FolderAccessEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -134,7 +134,7 @@ export default function FolderAccessModal({ folderId, folderName, onClose }: Fol
                   onChange={(e) => setRole(e.target.value as FolderAccessRole)}
                   className="px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
-                  {ROLES.map((r) => (
+                  {FOLDER_ACCESS_ROLES.map((r) => (
                     <option key={r} value={r}>
                       {r.charAt(0).toUpperCase() + r.slice(1)}
                     </option>
