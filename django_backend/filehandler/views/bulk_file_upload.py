@@ -13,6 +13,7 @@ from ..services.file_handler import (
     get_or_create_file_entry,
     get_or_create_folder_record,
 )
+from ..services.folder_access import grant_folder_access
 
 
 class BulkFileUploadView(APIView):
@@ -58,12 +59,22 @@ class BulkFileUploadView(APIView):
                     continue
 
                 try:
-                    folder_record = get_or_create_folder_record(service, reference_id, student.full_name)
+                    folder_record, created = get_or_create_folder_record(
+                        service, reference_id, student.full_name
+                    )
                 except LookupError as exc:
                     results.append(
                         {"filename": file.name, "reference_id": reference_id, "error": str(exc)}
                     )
                     continue
+
+                access_warning = None
+                if created and student.email and not settings.DEBUG:
+                    try:
+                        grant_folder_access(service, folder_record.drive_folder_id, student.email)
+                    except Exception as exc:
+                        access_warning = str(exc)
+
                 extension = os.path.splitext(file.name)[1]
                 drive_filename = get_next_sequential_filename(folder_record, file.content_type, extension)
 
@@ -71,17 +82,19 @@ class BulkFileUploadView(APIView):
                     service, folder_record, drive_filename, file, file.content_type, file.size
                 )
 
-                results.append(
-                    {
-                        "filename": file.name,
-                        "drive_filename": drive_filename,
-                        "reference_id": reference_id,
-                        "folder_id": folder_record.drive_folder_id,
-                        "file_id": entry.drive_file_id,
-                        "webViewLink": entry.file_link,
-                        "overwritten": overwritten,
-                    }
-                )
+                result = {
+                    "filename": file.name,
+                    "drive_filename": drive_filename,
+                    "reference_id": reference_id,
+                    "folder_id": folder_record.drive_folder_id,
+                    "file_id": entry.drive_file_id,
+                    "webViewLink": entry.file_link,
+                    "overwritten": overwritten,
+                }
+                if access_warning:
+                    result["access_warning"] = access_warning
+
+                results.append(result)
             except Exception as exc:
                 results.append({"filename": file.name, "reference_id": reference_id, "error": str(exc)})
 

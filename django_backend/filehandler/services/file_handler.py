@@ -107,26 +107,32 @@ def upload_file(service, filename, file_obj, content_type, folder_id, existing_f
 
 
 def get_or_create_folder_record(service, reference_id, full_name=None):
-    """Return a StudentDriveFolder row for reference_id, using the local cache first."""
+    """Return (StudentDriveFolder, created) for reference_id, using the local cache first."""
     existing = StudentDriveFolder.objects.filter(student_id=reference_id).first()
     if existing is not None:
-        return existing
+        return existing, False
 
     parent_id = settings.GOOGLE_DRIVE_PARENT_FOLDER_ID
     drive_folder = find_folder_by_reference_id(service, reference_id, parent_id)
     if drive_folder is not None:
-        return StudentDriveFolder.objects.create(
-            student_id=reference_id,
-            drive_folder_id=drive_folder["id"],
-            folder_link=drive_folder.get("webViewLink", ""),
+        return (
+            StudentDriveFolder.objects.create(
+                student_id=reference_id,
+                drive_folder_id=drive_folder["id"],
+                folder_link=drive_folder.get("webViewLink", ""),
+            ),
+            True,
         )
 
     if full_name:
         drive_folder, _created = get_or_create_student_folder(service, full_name, reference_id)
-        return StudentDriveFolder.objects.create(
-            student_id=reference_id,
-            drive_folder_id=drive_folder["id"],
-            folder_link=drive_folder.get("webViewLink", ""),
+        return (
+            StudentDriveFolder.objects.create(
+                student_id=reference_id,
+                drive_folder_id=drive_folder["id"],
+                folder_link=drive_folder.get("webViewLink", ""),
+            ),
+            True,
         )
 
     raise LookupError(f"No folder or student found for reference_id '{reference_id}'.")

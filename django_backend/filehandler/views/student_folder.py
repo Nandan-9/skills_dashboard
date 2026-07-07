@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -5,6 +6,7 @@ from config.models import ICPCAmbassadorApplication
 
 from ..models import StudentDriveFolder
 from ..services.file_handler import get_drive_service, get_or_create_folder_record
+from ..services.folder_access import grant_folder_access
 
 
 class StudentFolderView(APIView):
@@ -59,19 +61,25 @@ class StudentFolderView(APIView):
                 continue
 
             try:
-                folder_record = get_or_create_folder_record(
+                folder_record, created = get_or_create_folder_record(
                     service, student.reference_id, student.full_name
                 )
             except Exception as exc:
                 results.append({"reference_id": reference_id, "error": str(exc)})
                 continue
 
-            results.append(
-                {
-                    "reference_id": reference_id,
-                    "id": folder_record.drive_folder_id,
-                    "webViewLink": folder_record.folder_link,
-                }
-            )
+            result = {
+                "reference_id": reference_id,
+                "id": folder_record.drive_folder_id,
+                "webViewLink": folder_record.folder_link,
+            }
+
+            if created and student.email and not settings.DEBUG:
+                try:
+                    grant_folder_access(service, folder_record.drive_folder_id, student.email)
+                except Exception as exc:
+                    result["access_warning"] = str(exc)
+
+            results.append(result)
 
         return Response({"results": results}, status=200)
