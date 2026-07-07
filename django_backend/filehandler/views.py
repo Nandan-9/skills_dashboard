@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 
 from config.models import ICPCAmbassadorApplication
 
+from .models import StudentDriveFolder
 from .services.file_handler import (
     get_drive_service,
     get_or_create_file_entry,
@@ -19,6 +20,19 @@ class StudentFolderView(APIView):
 
     Accepts either {"reference_id": "..."} or {"reference_ids": ["...", "..."]}.
     """
+
+    def get(self, request):
+        folders = StudentDriveFolder.objects.order_by("-created_at")
+        results = [
+            {
+                "student_id": folder.student_id,
+                "drive_folder_id": folder.drive_folder_id,
+                "folder_link": folder.folder_link,
+                "created_at": folder.created_at,
+            }
+            for folder in folders
+        ]
+        return Response({"results": results}, status=200)
 
     def post(self, request):
         reference_ids = request.data.get("reference_ids")
