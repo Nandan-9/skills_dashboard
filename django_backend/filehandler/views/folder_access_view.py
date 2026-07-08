@@ -8,7 +8,11 @@ from ..services.file_handler import (
     get_drive_service,
 )
 
-from ..services.folder_access import grant_folder_access, list_folder_access
+from ..services.folder_access import (
+    grant_folder_access,
+    list_folder_access,
+    revoke_folder_access,
+)
 
 
 
@@ -61,4 +65,33 @@ class FolderAccessView(APIView):
             return Response({"detail": str(exc)}, status=502)
 
         return Response(response, status=200)
+
+    def delete(self, request):
+
+        folder_id = request.data.get("folder_id")
+        email = request.data.get("email")
+
+        if not folder_id or not email:
+            return Response(
+                {"detail": "folder_id and email are required."}, status=400
+            )
+
+        try:
+            service = get_drive_service()
+        except Exception as exc:
+            return Response({"detail": str(exc)}, status=502)
+
+        try:
+            revoked = revoke_folder_access(
+                service=service, folder_id=folder_id, email=email
+            )
+        except Exception as exc:
+            return Response({"detail": str(exc)}, status=502)
+
+        if not revoked:
+            return Response(
+                {"detail": "No matching permission found for that email."}, status=404
+            )
+
+        return Response({"detail": "Access revoked."}, status=200)
 
