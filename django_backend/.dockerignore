@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.example
+db.sqlite3
+gcp_service_account.json
+.git/
+.claude/
+staticfiles/
