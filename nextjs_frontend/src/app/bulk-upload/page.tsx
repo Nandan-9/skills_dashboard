@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { uploadBulkFiles } from "@/lib/api";
+import { fetchStudents, uploadBulkFiles, uploadFileToReferenceIds } from "@/lib/api";
 import type { BulkUploadResult } from "@/types/upload";
+import type { Student } from "@/types/student";
 import Sidebar from "@/components/Sidebar";
+import ReferenceIdSelect from "@/components/ReferenceIdSelect";
 
 export default function BulkUploadPage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -11,6 +13,33 @@ export default function BulkUploadPage() {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<BulkUploadResult[] | null>(null);
   const [loadedCount, setLoadedCount] = useState(0);
+
+  const [singleFile, setSingleFile] = useState<File | null>(null);
+  const [referenceIds, setReferenceIds] = useState<string[]>([]);
+  const [singleUploading, setSingleUploading] = useState(false);
+  const [singleError, setSingleError] = useState<string | null>(null);
+  const [singleResults, setSingleResults] = useState<BulkUploadResult[] | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+
+  useEffect(() => {
+    fetchStudents()
+      .then(setStudents)
+      .catch(() => setStudents([]));
+  }, []);
+
+  const handleSingleUpload = async () => {
+    if (!singleFile || referenceIds.length === 0) return;
+    setSingleUploading(true);
+    setSingleError(null);
+    try {
+      const response = await uploadFileToReferenceIds(singleFile, referenceIds);
+      setSingleResults(response.results);
+    } catch (e) {
+      setSingleError((e as Error).message);
+    } finally {
+      setSingleUploading(false);
+    }
+  };
 
   const previews = useMemo(
     () => files.map((file) => ({ file, url: URL.createObjectURL(file) })),
@@ -65,6 +94,63 @@ export default function BulkUploadPage() {
         </div>
 
         {error && <p className="text-red-600 mt-4">{error}</p>}
+
+        <div className="border border-gray-200 rounded p-4 shrink-0 mt-4">
+          <h2 className="text-sm font-medium text-gray-700 mb-3">
+            Upload one file to multiple students
+          </h2>
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-start">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setSingleFile(e.target.files?.[0] ?? null)}
+              className="text-sm"
+            />
+            <ReferenceIdSelect
+              students={students}
+              selectedIds={referenceIds}
+              onChange={setReferenceIds}
+            />
+            <button
+              onClick={handleSingleUpload}
+              disabled={singleUploading || !singleFile || referenceIds.length === 0}
+              className="px-4 py-2 rounded bg-blue-600 text-white text-sm font-medium disabled:opacity-50 shrink-0"
+            >
+              {singleUploading ? "Uploading..." : `Upload to ${referenceIds.length || 0}`}
+            </button>
+          </div>
+
+          {singleError && <p className="text-red-600 mt-3 text-sm">{singleError}</p>}
+
+          {singleResults && (
+            <div className="mt-4 overflow-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="text-left border-b border-gray-200">
+                    <th className="py-2 pr-4">Reference ID</th>
+                    <th className="py-2 pr-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {singleResults.map((result) => (
+                    <tr key={result.reference_id} className="border-b border-gray-100">
+                      <td className="py-2 pr-4">{result.reference_id}</td>
+                      <td className="py-2 pr-4">
+                        {result.error ? (
+                          <span className="text-red-600">{result.error}</span>
+                        ) : (
+                          <span className="text-green-700">
+                            {result.overwritten ? "Overwritten" : "Uploaded"}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
 
         {previews.length > 0 && (
           <div className="mt-4 flex-1 min-h-0 flex flex-col">

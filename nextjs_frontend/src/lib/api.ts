@@ -2,6 +2,7 @@ import type { ApprovalStatus, Student } from "@/types/student";
 import type { CollegeStudentsResponse } from "@/types/college";
 import type { BulkUploadResponse } from "@/types/upload";
 import type { Folder, FolderAccessEntry, FolderAccessRole } from "@/types/folder";
+import type { ExportRow } from "@/types/export";
 
 export async function fetchStudents(): Promise<Student[]> {
   const res = await fetch("/api/sync", { cache: "no-store" });
@@ -41,6 +42,29 @@ export async function uploadBulkFiles(files: File[]): Promise<BulkUploadResponse
   });
   if (!res.ok) throw new Error("Failed to upload files");
   return res.json();
+}
+
+export async function uploadFileToReferenceIds(
+  file: File,
+  referenceIds: string[]
+): Promise<BulkUploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("reference_ids", JSON.stringify(referenceIds));
+
+  const res = await fetch("/api/filehandler/upload-to-many", {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) throw new Error("Failed to upload file");
+  return res.json();
+}
+
+export async function fetchExportData(): Promise<ExportRow[]> {
+  const res = await fetch("/api/export-data", { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to load export data");
+  const data = await res.json();
+  return data.results;
 }
 
 export async function fetchFolders(): Promise<Folder[]> {

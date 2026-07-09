@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/approved", label: "Approved Students" },
   { href: "/bulk-upload", label: "Bulk Upload" },
   { href: "/folders", label: "Folders", icon: FolderIcon },
+  { href: "/export", label: "Export" },
 ];
 
 export default function Sidebar() {
